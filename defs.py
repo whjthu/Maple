@@ -127,8 +127,6 @@ linestyle_def = [
 ]
 
 
-# test_color_lines(color_dark, marker_def, linestyle_def)
-
 # Generate dummy data for plotting
 class DataType:
     REGULAR = 0
@@ -137,7 +135,7 @@ class DataType:
     WITH_INF = 3
 
 
-def data_generator(type=DataType.REGULAR, dims=[], special_ratio=0.2):
+def data_generator(type=DataType.REGULAR, dims=[], special_ratio=0.2) -> np.array:
     assert len(dims) > 0, "[dataData dimension cannot be 0"
     seeds = []
     for _ in range(100):
@@ -167,5 +165,6 @@ def data_generator(type=DataType.REGULAR, dims=[], special_ratio=0.2):
             else:
                 data[i] = seeds[idx]
                 idx += 1
+
     fillNumber(result, 0)
     return result

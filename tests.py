@@ -58,10 +58,12 @@ def test_color_lines(color_vec=color_dark, marker_vec=marker_def, linestyle_vec=
                     FIGURE_TYPE, bbox_inches='tight')
 
 # test_color_bars(color_light, hatch_def)
+# test_color_lines(color_dark, marker_def, linestyle_def)
 
 
-def test_data_generator(type=DataType.REGULAR, dims=[], special_ratio=0.2):
-    print(data_generator(type, dims, special_ratio))
+def test_data_generator(type, dims, special_ratio=0.2):
+    data = data_generator(type, dims, special_ratio)
+    print(data)
 
 # test_data_generator(type = DataType.REGULAR, dims = [2,3,2])
 # test_data_generator(type = DataType.WITH_BIGNUM, dims = [2,3,2])
