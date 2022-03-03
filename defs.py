@@ -1,3 +1,6 @@
+from os import curdir
+import re
+from tarfile import REGULAR_TYPES
 from types import CodeType
 import numpy as np
 import matplotlib
@@ -5,6 +8,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 from numpy.lib.function_base import cov
+from enum import Enum
+from random import randint
+import math
 
 # Set font type for Chinese
 # matplotlib.rcParams['pdf.fonttype'] = 42
@@ -121,68 +127,45 @@ linestyle_def = [
 ]
 
 
-def test_color_bars(color_vec=color_light, hatch_vec=hatch_def, path=''):
-    N = len(color_vec)
-    figsz = {'figure.figsize': (N, 5)}
-    plt.rcParams.update(figsz)
-    dat = [1 for i in range(N)]
-    fig, ax = plt.subplots()
-    W = 0.35
-    ind = np.arange(N) - 2 * W
-    ax.bar(ind, dat, color=color_vec, hatch=hatch_vec)
-    bars = ax.patches
-    hatches = []
-    for i in range(N):
-        hatches.append(hatch_vec[i % len(hatch_vec)])
-    for bar, hatch in zip(bars, hatches):
-        bar.set_hatch(hatch)
-    legend_handles = [mpatches.Patch(
-        facecolor=color_vec[i], hatch=hatches[i], label=str(i)) for i in range(N)]
-    plt.legend(legend_handles, range(
-        N), bbox_to_anchor=(1, 1), ncol=2)
-    plt.subplots_adjust(bottom=0.2)
-    xvals = np.arange(N)
-    ax.set_xticks(ind)
-    ax.set_xticklabels(str(x) for x in xvals)
-    if SHOW_FIGURE:
-        plt.tight_layout()
-        plt.show()
-    if SAVE_FIGURE:
-        fig.savefig(basedir + 'test_color_bars.' +
-                    FIGURE_TYPE, bbox_inches='tight')
-
-
-test_color_bars(color_light, hatch_def)
-
-
-def test_color_lines(color_vec=color_dark, marker_vec=marker_def, linestyle_vec=linestyle_def):
-    N = len(color_vec)
-    figsz = {'figure.figsize': (8, max(N//3, 4))}
-    plt.rcParams.update(figsz)
-    dat = [[i for j in range(5)] for i in range(N)]
-    fig, ax = plt.subplots()
-    markers = []
-    for i in range(N):
-        markers.append(marker_vec[i % len(marker_vec)])
-
-    for i in range(N):
-        ax.plot(dat[i], linestyle=linestyle_vec[i],
-                color=color_vec[i], marker=markers[i])
-
-    legend_handles = [mlines.Line2D([], [], linestyle=linestyle_vec[i],
-                                    color=color_vec[i], marker=markers[i], label=str(i)) for i in range(N)]
-    plt.legend(handles=legend_handles, ncol=N//15 +
-               1, bbox_to_anchor=(1, 1), fontsize=14)
-    if SHOW_FIGURE:
-        plt.tight_layout()
-        plt.show()
-    if SAVE_FIGURE:
-        fig.savefig(basedir + 'test_color_lines.' +
-                    FIGURE_TYPE, bbox_inches='tight')
-
-
 # test_color_lines(color_dark, marker_def, linestyle_def)
 
 # Generate dummy data for plotting
-def data_generator(dims=[]):
-    pass
+class DataType:
+    REGULAR = 0
+    WIDE_RANGE = 1
+    WITH_BIGNUM = 2
+    WITH_INF = 3
+
+
+def data_generator(type=DataType.REGULAR, dims=[], special_ratio=0.2):
+    assert len(dims) > 0, "[dataData dimension cannot be 0"
+    seeds = []
+    for _ in range(100):
+        if type == DataType.REGULAR:
+            seeds.append(randint(3, 10))
+        elif type == DataType.WIDE_RANGE:
+            seeds.append(randint(1, 1000))
+        elif type == DataType.WITH_BIGNUM:
+            if randint(0, 1000) > 1000*special_ratio:
+                seeds.append(randint(3, 10))
+            else:
+                seeds.append(randint(100, 200))
+        elif type == DataType.WITH_INF:
+            if randint(0, 1000) > 1000*special_ratio:
+                seeds.append(randint(3, 10))
+            else:
+                seeds.append(math.inf)
+    idx = 0
+    result = np.empty(dims)
+
+    def fillNumber(data: np.array, curdim: int):
+        nonlocal seeds, idx
+        assert curdim < len(dims), "Index error in data generation"
+        for i in range(dims[curdim]):
+            if curdim < len(dims)-1:
+                fillNumber(data[i], curdim+1)
+            else:
+                data[i] = seeds[idx]
+                idx += 1
+    fillNumber(result, 0)
+    return result
